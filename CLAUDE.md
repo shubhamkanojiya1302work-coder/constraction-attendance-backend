@@ -43,7 +43,7 @@ The package is ESM (`"type": "module"`): use `import`/`export` with explicit `.j
 - **Authorship:** the user is the sole author of every commit and PR. Commit with the configured git identity, and add **no** `Co-Authored-By` trailer or "Generated with Claude Code" line to commit messages or PR descriptions.
 - **Commit/push only when asked.**
 - **Before every push:** confirm `.env` is still ignored and untracked (`git check-ignore .env` prints `.env`; `git ls-files .env` prints nothing). If either check fails, stop and tell the user.
-- **"Push to dev" means a PR:** push a feature branch and open a PR targeting `dev` with `gh pr create --base dev`. Never push directly to `dev`. (As of 2026-11-21 there is no `dev` branch on the remote, only `main`. Ask before creating it.)
+- **"Push to dev" means a PR:** push a feature branch and open a PR targeting `dev` with `gh pr create --base dev`. Never push directly to `dev`. `dev` branches from `main`. Feature branches use prefixes like `chore/`, `feat/` or `fix/`.
 - **Keep this file current:** after any change that affects commands, env vars, endpoints, architecture or these rules, update CLAUDE.md in the same piece of work.
 
 ## Style
