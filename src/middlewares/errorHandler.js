@@ -1,13 +1,13 @@
 export const notFound= (req,res)=>{
-    req.originalUrl;
     res.status(404).json({ message: `Route not found: ${req.originalUrl}` })
 
 }
 
 export const errorHandler = (err, req, res, next) =>{
     console.log(err);
-    req.originalUrl;
-    res.status(500);
-    res.json(err.message);
+    const status = err.status || 500;
+    // Hide internal details (e.g. database errors) from the client
+    const message = status >= 500 ? "Internal server error" : err.message;
+    res.status(status).json({ message });
 
 }

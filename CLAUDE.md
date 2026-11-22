@@ -24,7 +24,7 @@ Smoke check once running: `GET /api/health`.
 
 Copy `.env.example` to `.env`. Variables read by the code:
 
-- `PORT` — required; there's no default in code
+- `PORT` (default 5000)
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` — Postgres connection
 - `FRONTEND_URL` — the single allowed CORS origin (frontend Vite dev server defaults to `http://localhost:5173`). If unset, no CORS header is sent and browser requests from the frontend will be blocked.
 
@@ -38,7 +38,7 @@ Request flow: `src/server.js` → `src/app.js` → `src/routes/*Router.js` → `
 - `src/app.js` — builds the Express app: CORS, `express.json()`, `morgan("dev")` request logging, mounts routers under `/api`, then `notFound` and `errorHandler`.
 - `src/routes/` — one router per feature (e.g. `healthRouter.js`), mounted in `src/app.js` under `/api`.
 - `src/controllers/` — request handlers (e.g. `healthController.js`).
-- `src/middlewares/errorHandler.js` — exports `notFound` (404 JSON) and `errorHandler` (logs the error and returns 500). Express 5 sends rejected promises from async handlers here automatically.
+- `src/middlewares/errorHandler.js` — exports `notFound` (404 JSON) and `errorHandler`. Express 5 sends rejected promises from async handlers here automatically. `errorHandler` logs the error and responds with `err.status` (default 500) and `{ message }`. To send a 4xx, throw an error with a `status` property (e.g. `const e = new Error("Worker not found"); e.status = 404; throw e;`). For 5xx, the client only sees `"Internal server error"`, so database and internal details aren't exposed.
 - `src/config/db.js` — exports a single shared `pg.Pool` built from env vars. Import it (`import pool from "../config/db.js"` from a controller) and use `pool.query(...)` with parameterized queries; don't create additional pools. Nothing imports it yet.
 
 The package is ESM (`"type": "module"`): use `import`/`export` with explicit `.js` extensions in relative imports.
