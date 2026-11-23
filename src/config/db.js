@@ -10,4 +10,11 @@ const pool = new Pool({
   database: process.env.DB_NAME
 });
 
+
 export default pool;
+
+export const checkConnection = async() => {
+  const dbData = await pool.query("SELECT NOW()");
+  console.log(dbData.rows[0]);
+return dbData.rows[0].now
+}
