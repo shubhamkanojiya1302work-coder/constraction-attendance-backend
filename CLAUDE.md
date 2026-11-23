@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Express 5 + PostgreSQL REST API for a construction-site attendance app. The matching frontend lives in the sibling directory `../constraction-attendance-frontend` (note the "constraction" spelling is used consistently in repo/package names).
 
-The project is at an early scaffold stage: the only endpoint so far is `GET /api/health`.
+The project is at an early scaffold stage: the only endpoints so far are `GET /api/health` and `GET /api/health/db` (runs `SELECT NOW()` and returns the DB time).
 
 ## Commands
 
@@ -18,7 +18,7 @@ Package manager is **Yarn 4** (`packageManager: yarn@4.18.1`) with `nodeLinker: 
 
 There is no test runner, linter, or build step configured yet.
 
-Smoke check once running: `GET /api/health`.
+Smoke check once running: `GET /api/health` and `GET /api/health/db`.
 
 ## Configuration
 
@@ -34,12 +34,12 @@ Copy `.env.example` to `.env`. Variables read by the code:
 
 Request flow: `src/server.js` → `src/app.js` → `src/routes/*Router.js` → `src/controllers/*Controller.js`.
 
-- `src/server.js` — entry point. Its first line is `import "dotenv/config"`, which must stay first: other modules (e.g. `src/config/db.js`) read `process.env` when they're imported, so `.env` has to load before them. Then it starts the app on `PORT`.
+- `src/server.js` — entry point. Its first line is `import "dotenv/config"`, which must stay first: other modules (e.g. `src/config/db.js`) read `process.env` when they're imported, so `.env` has to load before them. It then calls `checkConnection()` and only starts the app on `PORT` if the database is reachable; otherwise it logs the error and exits with code 1, so Postgres must be running to start the server.
 - `src/app.js` — builds the Express app: CORS, `express.json()`, `morgan("dev")` request logging, mounts routers under `/api`, then `notFound` and `errorHandler`.
 - `src/routes/` — one router per feature (e.g. `healthRouter.js`), mounted in `src/app.js` under `/api`.
 - `src/controllers/` — request handlers (e.g. `healthController.js`).
 - `src/middlewares/errorHandler.js` — exports `notFound` (404 JSON) and `errorHandler`. Express 5 sends rejected promises from async handlers here automatically. `errorHandler` logs the error and responds with `err.status` (default 500) and `{ message }`. To send a 4xx, throw an error with a `status` property (e.g. `const e = new Error("Worker not found"); e.status = 404; throw e;`). For 5xx, the client only sees `"Internal server error"`, so database and internal details aren't exposed.
-- `src/config/db.js` — exports a single shared `pg.Pool` built from env vars. Import it (`import pool from "../config/db.js"` from a controller) and use `pool.query(...)` with parameterized queries; don't create additional pools. Nothing imports it yet.
+- `src/config/db.js` — exports a single shared `pg.Pool` built from env vars. Import it (`import pool from "../config/db.js"` from a controller) and use `pool.query(...)` with parameterized queries; don't create additional pools. It also exports `checkConnection()`, which runs `SELECT NOW()` and returns the time (used at startup and by `GET /api/health/db`).
 
 The package is ESM (`"type": "module"`): use `import`/`export` with explicit `.js` extensions in relative imports.
 
