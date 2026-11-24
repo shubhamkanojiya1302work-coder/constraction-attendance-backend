@@ -14,3 +14,5 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
+# Yarn install state (regenerated on every install)
+.yarn/install-state.gz
