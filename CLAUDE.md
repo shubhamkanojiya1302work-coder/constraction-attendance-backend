@@ -41,6 +41,11 @@ Request flow: `src/server.js` → `src/app.js` → `src/routes/*Router.js` → `
 - `src/middlewares/errorHandler.js` — exports `notFound` (404 JSON) and `errorHandler`. Express 5 sends rejected promises from async handlers here automatically. `errorHandler` logs the error and responds with `err.status` (default 500) and `{ message }`. To send a 4xx, throw an error with a `status` property (e.g. `const e = new Error("Worker not found"); e.status = 404; throw e;`). For 5xx, the client only sees `"Internal server error"`, so database and internal details aren't exposed.
 - `src/config/db.js` — exports a single shared `pg.Pool` built from env vars. Import it (`import pool from "../config/db.js"` from a controller) and use `pool.query(...)` with parameterized queries; don't create additional pools. It also exports `checkConnection()`, which runs `SELECT NOW()` and returns the time (used at startup and by `GET /api/health/db`).
 
+Database SQL lives in `db/` (not run automatically; apply it by hand, e.g. with `psql`):
+
+- `db/schema.sql` — creates the `user_main` table (roles: `superadmin`, `admin`, `supervisor`, `worker`; `user_phone` is unique).
+- `db/seed.sql` — inserts sample users into `user_main`. Run it after `schema.sql`.
+
 The package is ESM (`"type": "module"`): use `import`/`export` with explicit `.js` extensions in relative imports.
 
 ## Working rules (from the repo owner)
