@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import {notFound, errorHandler} from "./middlewares/errorHandler.js"
 import healthRouter from "./routes/healthRouter.js";
+import workerRouter from "./routes/workerRouter.js"
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(morgan("dev"));
 
 
 app.use("/api",healthRouter); //use this /api
+app.use("/api/workers",workerRouter);
 app.use(notFound);
 app.use(errorHandler);
 
