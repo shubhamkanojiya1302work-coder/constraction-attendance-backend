@@ -1,6 +1,7 @@
 import "dotenv/config"
 import app from "./app.js"
 import { checkConnection } from "./config/db.js";
+
 const port = process.env.PORT || 5000
 
 
@@ -19,6 +20,7 @@ const startServer = async() => {
     process.exit(1);
    }
 }
+
 startServer()
 
 
