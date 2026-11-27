@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Express 5 + PostgreSQL REST API for a construction-site attendance app. The matching frontend lives in the sibling directory `../constraction-attendance-frontend` (note the "constraction" spelling is used consistently in repo/package names).
 
-The project is at an early scaffold stage: the endpoints so far are `GET /api/health`, `GET /api/health/db` (runs `SELECT NOW()` and returns the DB time) and `GET /api/workers` (active users with role `worker` from `user_main`, sorted by name).
+The project is at an early scaffold stage: the endpoints so far are `GET /api/health`, `GET /api/health/db` (runs `SELECT NOW()` and returns the DB time) `GET /api/workers` (active users with role `worker` from `user_main`, sorted by name), `GET /api/workers/:id` (one worker; 400 for an invalid id, 404 if not found) and `POST /api/workers` (body `{ name, trade, phone? }`; creates a worker and returns it with 201, 400 if `name` or `trade` is missing).
 
 ## Commands
 
@@ -38,13 +38,13 @@ Request flow: `src/server.js` → `src/app.js` → `src/routes/*Router.js` → `
 - `src/app.js` — builds the Express app: CORS, `express.json()`, `morgan("dev")` request logging, mounts routers under `/api`, then `notFound` and `errorHandler`.
 - `src/routes/` — one router per feature (e.g. `healthRouter.js`), mounted in `src/app.js` under `/api`.
 - `src/controllers/` — request handlers (e.g. `healthController.js`, `workerController.js`).
-- `src/models/` — database queries, one file per table (e.g. `user_main.js` exports `findAllWorkers()`). Controllers call these instead of querying the pool directly.
+- `src/models/` — database queries, one file per table (e.g. `user_main.js` exports `findAllWorkers()`, `findWorkerById()` and `createWorker()`). Controllers call these instead of querying the pool directly.
 - `src/middlewares/errorHandler.js` — exports `notFound` (404 JSON) and `errorHandler`. Express 5 sends rejected promises from async handlers here automatically. `errorHandler` logs the error and responds with `err.status` (default 500) and `{ message }`. To send a 4xx, throw an error with a `status` property (e.g. `const e = new Error("Worker not found"); e.status = 404; throw e;`). For 5xx, the client only sees `"Internal server error"`, so database and internal details aren't exposed.
 - `src/config/db.js` — exports a single shared `pg.Pool` built from env vars. Import it (`import pool from "../config/db.js"` from a model) and use `pool.query(...)` with parameterized queries; don't create additional pools. It also exports `checkConnection()`, which runs `SELECT NOW()` and returns the time (used at startup and by `GET /api/health/db`).
 
 Database SQL lives in `db/` (not run automatically; apply it by hand, e.g. with `psql`):
 
-- `db/schema.sql` — creates the `user_main` table (roles: `superadmin`, `admin`, `supervisor`, `worker`; `user_phone` is unique).
+- `db/schema.sql` — creates the `user_main` table (roles: `superadmin`, `admin`, `supervisor`, `worker`; `user_phone` is optional but unique).
 - `db/seed.sql` — inserts sample users into `user_main`. Run it after `schema.sql`.
 
 The package is ESM (`"type": "module"`): use `import`/`export` with explicit `.js` extensions in relative imports.
