@@ -29,3 +29,11 @@ export const createWorker = async({name , phone, trade})=>{
     return result.rows[0];
 
 }
+
+export const updateWorker = async(id,{name,phone,trade}) =>{
+    const dbquery = await pool.query(
+        `UPDATE user_main SET user_name = $1, user_phone= $2 ,trade = $3
+         WHERE id = $4 and user_role = 'worker'
+         RETURNING id, user_name, user_phone, trade, is_active, created_at `,[name,phone,trade,id])
+    return dbquery.rows[0];
+}
